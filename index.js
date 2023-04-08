@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         apifox-openapi-transformer
 // @namespace    https://github.com/zenonux
-// @version      1.2
+// @version      1.3
 // @description  transform apifox openapi format provided by `http://127.0.0.1:4523/export/openapi/` into typescript api flie.
 // @author       换个头像心好累
 // @license      GPL-3.0 License
