@@ -37,14 +37,14 @@
   }
   function _buildApi(url, method, info) {
     let { summary, parameters, requestBody, responses } = info
-    let QueryType = '{}'
+    let ParamsType = '{}'
     if (parameters && parameters.length > 0) {
-      QueryType = _parseParam(parameters)
+      ParamsType = _parseParam(parameters)
     }
-    let BodyType = '{}'
+    let DataType = '{}'
     if (requestBody) {
       let body = requestBody.content['application/json'].schema
-      BodyType = _parseBodyOrResponse(body.properties, body.required)
+      DataType = _parseBodyOrResponse(body.properties, body.required)
     }
     let ResponseType = '{}'
     let responseData = responses['200'].content['application/json'].schema
@@ -53,31 +53,33 @@
       responseData.required
     )
 
-    return `${summary}(payloads:{
-        query:${QueryType},
-        body:${BodyType},
+    return `\n
+      // ${summary} 
+      ${method}(payloads:{
+        params${_isEmptyObjectStr(ParamsType) ? '?' : ''}:${ParamsType};
+        data${_isEmptyObjectStr(DataType) ? '?' : ''}:${DataType};
     }): Promise<${ResponseType}>{
         return request({
-            url:${url},
-            method:${method},
-            params:{
-                ...payloads.query
-            },
-            data:{
-                ...payloads.body
-            }
+            url:"${url}",
+            method:"${method}",
+            ${_isEmptyObjectStr(ParamsType) ? '' : 'params:payloads.params,'}
+            ${_isEmptyObjectStr(DataType) ? '' : 'data:payloads.data,'}
         })
-    },\n`
+    },
+    \n`
   }
   function _parseParam(parameters) {
     let query = '{'
     parameters.forEach((v) => {
-      query += `${[v.name]}${v.required ? '?' : ''}:${v.schema.type};`
+      // ignore in path
+      if (v.in.indexOf('query') !== -1) {
+        query += `${[v.name]}${v.required ? '' : '?'}:${v.schema.type};`
+      }
     })
     query += '}'
-    return query
+    return _replaceInteger2Number(query)
   }
-  function _parseBodyOrResponse(properties, required) {
+  function _parseBodyOrResponse(properties, required = []) {
     let data = '{'
     Object.keys(properties).forEach((v) => {
       let isRequired = required.some((k) => v === k)
@@ -89,12 +91,22 @@
           properties[v].required
         )
         data += `;`
+      } else if (type === 'array') {
+        data += `${v}:`
+        data += _parseBodyOrResponse(
+          properties[v].items.properties,
+          properties[v].items.required
+        )
+        data += `[];`
       } else {
-        data += `${[v]}${isRequired ? '?' : ''}:${type};`
+        data += `${[v]}${isRequired ? '' : '?'}:${type};`
       }
     })
     data += '}'
-    return data
+    return _replaceInteger2Number(data)
+  }
+  function _isEmptyObjectStr(obj) {
+    return obj === '{}'
   }
   function _showExportButton(apiStr) {
     let btn = document.createElement('button')
@@ -107,6 +119,9 @@
       })
     })
     document.body.appendChild(btn)
+  }
+  function _replaceInteger2Number(text) {
+    return text.replace(/integer/g, 'number')
   }
   function _showToast(msg) {
     let toast = document.createElement('div')
