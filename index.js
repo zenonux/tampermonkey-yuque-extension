@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         apifox-openapi-transformer
 // @namespace    https://github.com/zenonux
-// @version      1.3
+// @version      1.4
 // @description  transform apifox openapi format provided by `http://127.0.0.1:4523/export/openapi/` into typescript api flie.
 // @author       换个头像心好累
 // @license      GPL-3.0 License
@@ -10,130 +10,125 @@
 // @grant        none
 // ==/UserScript==
 
-;(function () {
-  'use strict'
-  const rootEl = document.body
-  const jsonData = JSON.parse(rootEl.innerText)
-  const apis = []
+(function () {
+  "use strict";
+  const rootEl = document.body;
+  const jsonData = JSON.parse(rootEl.innerText);
+  const apis = [];
   Object.keys(jsonData.paths).forEach((url) => {
-    let method = '',
-      info = {}
     if (jsonData.paths[url].get) {
-      method = 'get'
-      info = jsonData.paths[url].get
-    } else if (jsonData.paths[url].post) {
-      method = 'post'
-      info = jsonData.paths[url].post
-    } else if (jsonData.paths[url].delete) {
-      method = 'delete'
-      info = jsonData.paths[url].delete
+      apis.push(_buildApi(url, "get", jsonData.paths[url].get));
     }
-    let api = _buildApi(url, method, info)
-    apis.push(api)
-  })
+    if (jsonData.paths[url].post) {
+      apis.push(_buildApi(url, "post", jsonData.paths[url].post));
+    }
+    if (jsonData.paths[url].delete) {
+      apis.push(_buildApi(url, "delete", jsonData.paths[url].delete));
+    }
+  });
   if (apis.length > 0) {
-    let apiStr = apis.join('')
-    _showExportButton(apiStr)
+    let apiStr = apis.join("");
+    _showExportButton(apiStr);
   }
   function _buildApi(url, method, info) {
-    let { summary, parameters, requestBody, responses } = info
-    let ParamsType = '{}'
+    let { summary, parameters, requestBody, responses } = info;
+    let ParamsType = "{}";
     if (parameters && parameters.length > 0) {
-      ParamsType = _parseParam(parameters)
+      ParamsType = _parseParam(parameters);
     }
-    let DataType = '{}'
+    let DataType = "{}";
     if (requestBody) {
-      let body = requestBody.content['application/json'].schema
-      DataType = _parseBodyOrResponse(body.properties, body.required)
+      let body = requestBody.content["application/json"].schema;
+      DataType = _parseBodyOrResponse(body.properties, body.required);
     }
-    let ResponseType = '{}'
-    let responseData = responses['200'].content['application/json'].schema
+    let ResponseType = "{}";
+    let responseData = responses["200"].content["application/json"].schema;
     ResponseType = _parseBodyOrResponse(
       responseData.properties,
       responseData.required
-    )
+    );
 
     return `\n
-      // ${summary} 
+      // ${summary}
       ${method}(payloads:{
-        params${_isEmptyObjectStr(ParamsType) ? '?' : ''}:${ParamsType};
-        data${_isEmptyObjectStr(DataType) ? '?' : ''}:${DataType};
+        params${_isEmptyObjectStr(ParamsType) ? "?" : ""}:${ParamsType};
+        data${_isEmptyObjectStr(DataType) ? "?" : ""}:${DataType};
     }): Promise<${ResponseType}>{
         return request({
             url:"${url}",
             method:"${method}",
-            ${_isEmptyObjectStr(ParamsType) ? '' : 'params:payloads.params,'}
-            ${_isEmptyObjectStr(DataType) ? '' : 'data:payloads.data,'}
+            ${_isEmptyObjectStr(ParamsType) ? "" : "params:payloads.params,"}
+            ${_isEmptyObjectStr(DataType) ? "" : "data:payloads.data,"}
         })
     },
-    \n`
+    \n`;
   }
   function _parseParam(parameters) {
-    let query = '{'
+    let query = "{";
     parameters.forEach((v) => {
       // ignore in path
-      if (v.in.indexOf('query') !== -1) {
-        query += `${[v.name]}${v.required ? '' : '?'}:${v.schema.type};`
+      if (v.in.indexOf("query") !== -1) {
+        query += `${[v.name]}${v.required ? "" : "?"}:${v.schema.type};`;
       }
-    })
-    query += '}'
-    return _replaceInteger2Number(query)
+    });
+    query += "}";
+    return _replaceInteger2Number(query);
   }
   function _parseBodyOrResponse(properties, required = []) {
-    let data = '{'
+    let data = "{";
     Object.keys(properties).forEach((v) => {
-      let isRequired = required.some((k) => v === k)
-      let type = properties[v].type
-      if (type === 'object') {
-        data += `${v}:`
+      let isRequired = required.some((k) => v === k);
+      let type = properties[v].type;
+      if (type === "object") {
+        data += `${v}:`;
         data += _parseBodyOrResponse(
           properties[v].properties,
           properties[v].required
-        )
-        data += `;`
-      } else if (type === 'array') {
-        data += `${v}:`
+        );
+        data += `;`;
+      } else if (type === "array") {
+        data += `${v}:`;
         data += _parseBodyOrResponse(
           properties[v].items.properties,
           properties[v].items.required
-        )
-        data += `[];`
+        );
+        data += `[];`;
       } else {
-        data += `${[v]}${isRequired ? '' : '?'}:${type};`
+        data += `${[v]}${isRequired ? "" : "?"}:${type};`;
       }
-    })
-    data += '}'
-    return _replaceInteger2Number(data)
+    });
+    data += "}";
+    return _replaceInteger2Number(data);
   }
   function _isEmptyObjectStr(obj) {
-    return obj === '{}'
+    return obj === "{}";
   }
   function _showExportButton(apiStr) {
-    let btn = document.createElement('button')
-    btn.innerText = '复制接口'
+    let btn = document.createElement("button");
+    btn.innerText = "复制接口";
     btn.style =
-      'position:fixed;top:16%;left:50%;transform:translate(-50%,0);z-index:10000;background:#888;padding:10px 14px;border:none;color:#fff;cursor:pointer;'
-    btn.addEventListener('click', () => {
+      "position:fixed;top:16%;left:50%;transform:translate(-50%,0);z-index:10000;background:#888;padding:10px 14px;border:none;color:#fff;cursor:pointer;";
+    btn.addEventListener("click", () => {
       _copyToClipboard(apiStr).then(() => {
-        _showToast('复制成功')
-      })
-    })
-    document.body.appendChild(btn)
+        _showToast("复制成功");
+      });
+    });
+    document.body.appendChild(btn);
   }
   function _replaceInteger2Number(text) {
-    return text.replace(/integer/g, 'number')
+    return text.replace(/integer/g, "number");
   }
   function _showToast(msg) {
-    let toast = document.createElement('div')
-    toast.innerText = msg
+    let toast = document.createElement("div");
+    toast.innerText = msg;
     toast.style =
-      'position:fixed;top:16%;left:50%;transform:translate(-50%,-24%);z-index:20000;background:#67C23A;padding:30px 45px;border-radius:4px;color:#fff;'
-    document.body.appendChild(toast)
+      "position:fixed;top:16%;left:50%;transform:translate(-50%,-24%);z-index:20000;background:#67C23A;padding:30px 45px;border-radius:4px;color:#fff;";
+    document.body.appendChild(toast);
     setTimeout(() => {
-      document.body.removeChild(toast)
-    }, 1000)
+      document.body.removeChild(toast);
+    }, 1000);
   }
   function _copyToClipboard(text) {
-    return navigator.clipboard.writeText(text)
+    return navigator.clipboard.writeText(text);
   }
-})()
+})();
