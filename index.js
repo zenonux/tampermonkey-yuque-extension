@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         apifox-openapi-transformer
 // @namespace    https://github.com/zenonux
-// @version      1.4
+// @version      1.5
 // @description  transform apifox openapi format provided by `http://127.0.0.1:4523/export/openapi/` into typescript api flie.
 // @author       换个头像心好累
 // @license      GPL-3.0 License
@@ -21,6 +21,9 @@
     }
     if (jsonData.paths[url].post) {
       apis.push(_buildApi(url, "post", jsonData.paths[url].post));
+    }
+    if (jsonData.paths[url].put) {
+      apis.push(_buildApi(url, "put", jsonData.paths[url].put));
     }
     if (jsonData.paths[url].delete) {
       apis.push(_buildApi(url, "delete", jsonData.paths[url].delete));
