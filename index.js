@@ -17,18 +17,20 @@
   init();
 
   function init() {
-    let isDetailPage = document.querySelector(".ne-doc-major-viewer");
-    if (!isDetailPage) {
+    let isAtDetailPage = document.querySelector(".ne-doc-major-viewer");
+    if (!isAtDetailPage) {
       return;
     }
 
     let btn = document.createElement("button");
-    var md = window.markdownit({
-      html: true,
-    });
     btn.innerText = "导出html";
     btn.style =
       "position:fixed;top:16%;left:50%;transform:translate(-50%,0);z-index:10000;background:#888;padding:10px 14px;border:none;color:#fff;cursor:pointer;";
+
+    var md = window.markdownit({
+      html: true,
+    });
+
     btn.addEventListener("click", () => {
       const mdDownloadUrl =
         window.location.href +
@@ -42,6 +44,7 @@
           });
         });
     });
+
     document.body.appendChild(btn);
   }
 
