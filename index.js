@@ -17,12 +17,6 @@
   init();
 
   function init() {
-    let isAtDetailPage = document.querySelector(".ne-doc-major-viewer");
-    console.log(1,isAtDetailPage)
-    if (!isAtDetailPage) {
-      return;
-    }
-
     let btn = document.createElement("button");
     btn.innerText = "导出html";
     btn.style =
@@ -33,6 +27,11 @@
     });
 
     btn.addEventListener("click", () => {
+      let isAtDetailPage = document.querySelector(".ne-doc-major-viewer");
+      if (!isAtDetailPage) {
+        _showToast("请打开文档");
+        return;
+      }
       const mdDownloadUrl =
         window.location.href +
         "/markdown?attachment=true&latexcode=false&anchor=true&linebreak=true";
