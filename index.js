@@ -14,9 +14,14 @@
 (function () {
   "use strict";
 
-  _showExportButton();
+  init();
 
-  function _showExportButton() {
+  function init() {
+    let isDetailPage = document.querySelector(".ne-doc-major-viewer");
+    if (!isDetailPage) {
+      return;
+    }
+
     let btn = document.createElement("button");
     var md = window.markdownit({
       html: true,
@@ -28,7 +33,6 @@
       const mdDownloadUrl =
         window.location.href +
         "/markdown?attachment=true&latexcode=false&anchor=true&linebreak=true";
-
       window
         .fetch(mdDownloadUrl)
         .then((res) => res.text())
@@ -40,6 +44,7 @@
     });
     document.body.appendChild(btn);
   }
+
   function _showToast(msg) {
     let toast = document.createElement("div");
     toast.innerText = msg;
@@ -50,6 +55,7 @@
       document.body.removeChild(toast);
     }, 1000);
   }
+
   function _copyToClipboard(text) {
     return navigator.clipboard.writeText(text);
   }
