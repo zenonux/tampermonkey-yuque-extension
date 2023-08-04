@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         yuque-html-exporter
 // @namespace    https://github.com/zenonux
-// @version      1.5
+// @version      1.0
 // @description  export yuque document to html.
 // @author       换个头像心好累
 // @license      GPL-3.0 License
