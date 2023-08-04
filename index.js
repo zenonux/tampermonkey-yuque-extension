@@ -34,7 +34,7 @@
       }
       const mdDownloadUrl =
         window.location.href +
-        "/markdown?attachment=true&latexcode=false&anchor=false&linebreak=false";
+        "/markdown?attachment=true&latexcode=false&anchor=true&linebreak=true";
       window
         .fetch(mdDownloadUrl)
         .then((res) => res.text())
