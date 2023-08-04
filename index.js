@@ -18,6 +18,7 @@
 
   function init() {
     let isAtDetailPage = document.querySelector(".ne-doc-major-viewer");
+    console.log(1,isAtDetailPage)
     if (!isAtDetailPage) {
       return;
     }
