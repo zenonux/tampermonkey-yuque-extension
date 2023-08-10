@@ -42,6 +42,7 @@
     });
 
     document.body.appendChild(btn);
+    _toggleBtn();
 
     history.pushState = _bindEventListener("pushState");
     history.replaceState = _bindEventListener("replaceState");
