@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         yuque-html-exporter
 // @namespace    https://github.com/zenonux
-// @version      1.1
+// @version      1.2
 // @description  export yuque document to html.
 // @author       换个头像心好累
 // @license      GPL-3.0 License
@@ -18,6 +18,7 @@
 
   function init() {
     let btn = document.createElement("button");
+    btn.id = "exportHtmlButton";
     btn.innerText = "导出html";
     btn.style =
       "position:fixed;top:16%;left:50%;transform:translate(-50%,0);z-index:10000;background:#888;padding:10px 14px;border:none;color:#fff;cursor:pointer;";
@@ -27,11 +28,6 @@
     });
 
     btn.addEventListener("click", () => {
-      let isAtDetailPage = document.querySelector(".ne-doc-major-viewer");
-      if (!isAtDetailPage) {
-        _showToast("请打开文档");
-        return;
-      }
       const mdDownloadUrl =
         window.location.href +
         "/markdown?attachment=true&latexcode=false&anchor=true&linebreak=true";
@@ -46,6 +42,42 @@
     });
 
     document.body.appendChild(btn);
+
+    history.pushState = _bindEventListener("pushState");
+    history.replaceState = _bindEventListener("replaceState");
+    window.addEventListener("replaceState", function () {
+      _toggleBtn();
+    });
+    window.addEventListener("pushState", function () {
+      _toggleBtn();
+    });
+  }
+
+  function _toggleBtn() {
+    setTimeout(() => {
+      let isAtDetailPage = document.querySelector(".ne-doc-major-viewer");
+      let btn = document.getElementById("exportHtmlButton");
+      if (!isAtDetailPage) {
+        if (btn) {
+          btn.style.display = "none";
+        }
+      } else {
+        if (btn) {
+          btn.style.display = "block";
+        }
+      }
+    }, 1000);
+  }
+
+  function _bindEventListener(type) {
+    const historyEvent = history[type];
+    return function () {
+      const newEvent = historyEvent.apply(this, arguments);
+      const e = new Event(type);
+      e.arguments = arguments;
+      window.dispatchEvent(e);
+      return newEvent;
+    };
   }
 
   function _showToast(msg) {
