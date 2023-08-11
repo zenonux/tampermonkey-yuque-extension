@@ -21,7 +21,7 @@
     btn.id = "exportHtmlButton";
     btn.innerText = "导出html";
     btn.style =
-      "position:fixed;top:16%;left:50%;transform:translate(-50%,0);z-index:10000;background:#888;padding:10px 14px;border:none;color:#fff;cursor:pointer;";
+      "position:fixed;top:5px;left:50%;transform:translate(-50%,0);z-index:10000;background:#888;padding:10px 14px;border:none;color:#fff;cursor:pointer;";
 
     var md = window.markdownit({
       html: true,
@@ -55,9 +55,12 @@
   }
 
   function _toggleBtn() {
+    let btn = document.getElementById("exportHtmlButton");
+    if (btn) {
+      btn.style.display = "none";
+    }
     setTimeout(() => {
       let isAtDetailPage = document.querySelector(".ne-doc-major-viewer");
-      let btn = document.getElementById("exportHtmlButton");
       if (!isAtDetailPage) {
         if (btn) {
           btn.style.display = "none";
@@ -67,7 +70,7 @@
           btn.style.display = "block";
         }
       }
-    }, 1000);
+    }, 2000);
   }
 
   function _bindEventListener(type) {
