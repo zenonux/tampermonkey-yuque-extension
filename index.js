@@ -21,7 +21,7 @@
     btn.id = "exportHtmlButton";
     btn.innerText = "导出html";
     btn.style =
-      "position:fixed;top:5px;left:50%;transform:translate(-50%,0);z-index:10000;background:#888;padding:10px 14px;border:none;color:#fff;cursor:pointer;";
+      "position:fixed;top:5px;left:50%;transform:translate(-50%,0);z-index:10000;background:#00b96b;padding:10px 14px;border:none;color:#fff;cursor:pointer;";
 
     var md = window.markdownit({
       html: true,
