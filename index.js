@@ -35,7 +35,7 @@
         .fetch(mdDownloadUrl)
         .then((res) => res.text())
         .then((html) => {
-          _copyToClipboard(md.render(html)).then(() => {
+          _copyToClipboard(_addTableWrapDiv(md.render(html))).then(() => {
             _showToast("已导出至剪切板");
           });
         });
@@ -52,6 +52,18 @@
     window.addEventListener("pushState", function () {
       _toggleBtn();
     });
+  }
+
+  function _addTableWrapDiv(htmlStr) {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(htmlStr, "text/html");
+    doc.querySelectorAll("table").forEach((child) => {
+      const parent = document.createElement("div");
+      parent.style.overflowX = "auto";
+      child.parentNode.replaceChild(parent, child);
+      parent.appendChild(child);
+    });
+    return doc.body.innerHTML
   }
 
   function _toggleBtn() {
