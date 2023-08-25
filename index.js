@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         yuque-html-exporter
 // @namespace    https://github.com/zenonux
-// @version      1.2
+// @version      1.3
 // @description  export yuque document to html.
 // @author       换个头像心好累
 // @license      GPL-3.0 License
@@ -35,8 +35,23 @@
         .fetch(mdDownloadUrl)
         .then((res) => res.text())
         .then((html) => {
-          _copyToClipboard(_addTableWrapDiv(md.render(html))).then(() => {
-            _showToast("已导出至剪切板");
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(md.render(html), "text/html");
+          _copyToClipboard(_addTableWrapDiv(doc)).then(() => {
+            let yuqueLinksCount = _isHasYuqueLink(doc);
+            let tableCount = _isHasTableElement(doc);
+            if (yuqueLinksCount || tableCount) {
+              _showToast({
+                title: "已导出至剪切板",
+                message: `检测到${
+                  yuqueLinksCount ? yuqueLinksCount + "个语雀内链，" : ""
+                } ${tableCount ? tableCount + "个表格，请手动处理。" : ""}`,
+              });
+            } else {
+              _showToast({
+                title: "已导出至剪切板",
+              });
+            }
           });
         });
     });
@@ -54,16 +69,27 @@
     });
   }
 
-  function _addTableWrapDiv(htmlStr) {
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(htmlStr, "text/html");
+  function _isHasYuqueLink(doc) {
+    let aList = doc.querySelectorAll("a");
+    let yuqueLinks = aList
+      ? Array.from(aList).filter((v) => v.href.includes("yuque.com"))
+      : [];
+    return yuqueLinks.length;
+  }
+
+  function _isHasTableElement(doc) {
+    let tableList = doc.querySelectorAll("table");
+    return tableList?.length || 0;
+  }
+
+  function _addTableWrapDiv(doc) {
     doc.querySelectorAll("table").forEach((child) => {
       const parent = document.createElement("div");
       parent.style.overflowX = "auto";
       child.parentNode.replaceChild(parent, child);
       parent.appendChild(child);
     });
-    return doc.body.innerHTML
+    return doc.body.innerHTML;
   }
 
   function _toggleBtn() {
@@ -96,15 +122,20 @@
     };
   }
 
-  function _showToast(msg) {
+  function _showToast(opts) {
+    let { title, message } = opts;
+    let template = `
+      <div>${title}</div>
+      <div style="color:red;">${message}</div>
+    `;
     let toast = document.createElement("div");
-    toast.innerText = msg;
+    toast.innerHTML = template;
     toast.style =
-      "position:fixed;top:16%;left:50%;transform:translate(-50%,-24%);z-index:20000;background:#67C23A;padding:30px 45px;border-radius:4px;color:#fff;";
+      "position:fixed;top:16%;left:50%;transform:translate(-50%,-24%);z-index:20000;background:#67C23A;padding:30px 45px;border-radius:4px;color:#fff;text-align:center;";
     document.body.appendChild(toast);
     setTimeout(() => {
       document.body.removeChild(toast);
-    }, 1000);
+    }, 2000);
   }
 
   function _copyToClipboard(text) {
