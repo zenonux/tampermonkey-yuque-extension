@@ -45,7 +45,7 @@
                 title: "已导出至剪切板",
                 message: `检测到${
                   yuqueLinksCount ? yuqueLinksCount + "个语雀内链，" : ""
-                } ${tableCount ? tableCount + "个表格，请手动处理。" : ""}`,
+                } ${tableCount ? tableCount + "个表格，" : ""}请手动处理。`,
               });
             } else {
               _showToast({
