@@ -71,7 +71,8 @@
   }
 
   function _fixMarkdownStrong(md) {
-    return md.replace(/\：\*\*/g, "：** ").replace(/\。\*\*/g, "。** ");
+    return md
+    // return md.replace(/\*\*/g, "<strong>");
   }
 
   function _isHasYuqueLink(doc) {
