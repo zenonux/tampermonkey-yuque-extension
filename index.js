@@ -34,7 +34,10 @@
         .then((res) => res.text())
         .then((html) => {
           const parser = new DOMParser();
-          const doc = parser.parseFromString(marked.parse(_fixMarkdownStrong(html)), "text/html");
+          const doc = parser.parseFromString(
+            marked.parse(_fixMarkdownStrong(html)),
+            "text/html"
+          );
           _copyToClipboard(_addTableWrapDiv(doc)).then(() => {
             let yuqueLinksCount = _isHasYuqueLink(doc);
             let tableCount = _isHasTableElement(doc);
@@ -67,9 +70,8 @@
     });
   }
 
-
-  function _fixMarkdownStrong(md){
-    return md.replace(/\：\*\*/g,'：** ')
+  function _fixMarkdownStrong(md) {
+    return md.replace(/\：\*\*/g, "：** ").replace(/\。\*\*/g, "。** ");
   }
 
   function _isHasYuqueLink(doc) {
