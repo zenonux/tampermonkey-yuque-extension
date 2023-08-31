@@ -17,57 +17,66 @@
   init()
 
   function init() {
+    const btn = _createExportButton()
+    btn.addEventListener('click', () => {
+      const mdDownloadUrl = _getMarkdownFileUrl()
+      _parseMarkdownToHtml(mdDownloadUrl)
+    })
+    _toggleBtn()
+    _onRouterChange(_toggleBtn)
+  }
+
+  function _onRouterChange(handler) {
+    history.pushState = _bindEventListener('pushState')
+    history.replaceState = _bindEventListener('replaceState')
+    window.addEventListener('replaceState', handler)
+    window.addEventListener('pushState', handler)
+  }
+
+  function _parseMarkdownToHtml(url) {
+    window
+      .fetch(url)
+      .then((res) => res.text())
+      .then((html) => {
+        const parser = new DOMParser()
+        const doc = parser.parseFromString(
+          window.marked.parse(_fixMarkdownStrong(html)),
+          'text/html'
+        )
+        _copyToClipboard(_addTableWrapDiv(doc)).then(() => {
+          let yuqueLinksCount = _isHasYuqueLink(doc)
+          let tableCount = _isHasTableElement(doc)
+          if (yuqueLinksCount || tableCount) {
+            _showToast({
+              title: '已导出至剪切板',
+              message: `检测到${
+                yuqueLinksCount ? yuqueLinksCount + '个语雀内链，' : ''
+              } ${tableCount ? tableCount + '个表格，' : ''}请手动处理。`,
+            })
+          } else {
+            _showToast({
+              title: '已导出至剪切板',
+            })
+          }
+        })
+      })
+  }
+
+  function _getMarkdownFileUrl() {
+    return (
+      window.location.href +
+      '/markdown?attachment=true&latexcode=false&anchor=true&linebreak=true'
+    )
+  }
+
+  function _createExportButton() {
     let btn = document.createElement('button')
     btn.id = 'exportHtmlButton'
     btn.innerText = '导出html'
     btn.style =
       'position:fixed;top:5px;left:50%;transform:translate(-50%,0);z-index:10000;background:#00b96b;padding:10px 14px;border:none;color:#fff;cursor:pointer;'
-
-    var marked = window.marked
-
-    btn.addEventListener('click', () => {
-      const mdDownloadUrl =
-        window.location.href +
-        '/markdown?attachment=true&latexcode=false&anchor=true&linebreak=true'
-      window
-        .fetch(mdDownloadUrl)
-        .then((res) => res.text())
-        .then((html) => {
-          const parser = new DOMParser()
-          const doc = parser.parseFromString(
-            marked.parse(_fixMarkdownStrong(html)),
-            'text/html'
-          )
-          _copyToClipboard(_addTableWrapDiv(doc)).then(() => {
-            let yuqueLinksCount = _isHasYuqueLink(doc)
-            let tableCount = _isHasTableElement(doc)
-            if (yuqueLinksCount || tableCount) {
-              _showToast({
-                title: '已导出至剪切板',
-                message: `检测到${
-                  yuqueLinksCount ? yuqueLinksCount + '个语雀内链，' : ''
-                } ${tableCount ? tableCount + '个表格，' : ''}请手动处理。`,
-              })
-            } else {
-              _showToast({
-                title: '已导出至剪切板',
-              })
-            }
-          })
-        })
-    })
-
     document.body.appendChild(btn)
-    _toggleBtn()
-
-    history.pushState = _bindEventListener('pushState')
-    history.replaceState = _bindEventListener('replaceState')
-    window.addEventListener('replaceState', function () {
-      _toggleBtn()
-    })
-    window.addEventListener('pushState', function () {
-      _toggleBtn()
-    })
+    return btn
   }
 
   function _fixMarkdownStrong(md) {
