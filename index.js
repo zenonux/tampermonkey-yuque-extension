@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         yuque-html-exporter
 // @namespace    https://github.com/zenonux
-// @version      1.4
+// @version      1.5
 // @description  export yuque document to html.
 // @author       换个头像心好累
 // @license      GPL-3.0 License
@@ -22,8 +22,10 @@
       const mdDownloadUrl = _getMarkdownFileUrl()
       _parseMarkdownToHtml(mdDownloadUrl)
     })
-    _toggleBtn()
-    _onRouterChange(_toggleBtn)
+    _toggleBtn(btn)
+    _onRouterChange(() => {
+      _toggleBtn(btn)
+    })
   }
 
   function _onRouterChange(handler) {
@@ -71,7 +73,6 @@
 
   function _createExportButton() {
     let btn = document.createElement('button')
-    btn.id = 'exportHtmlButton'
     btn.innerText = '导出html'
     btn.style =
       'position:fixed;top:5px;left:50%;transform:translate(-50%,0);z-index:10000;background:#00b96b;padding:10px 14px;border:none;color:#fff;cursor:pointer;'
@@ -108,8 +109,7 @@
     return doc.body.innerHTML
   }
 
-  function _toggleBtn() {
-    let btn = document.getElementById('exportHtmlButton')
+  function _toggleBtn(btn) {
     if (btn) {
       btn.style.display = 'none'
     }
