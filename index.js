@@ -11,28 +11,28 @@
 // @grant      none
 // ==/UserScript==
 
-;(function () {
-  'use strict'
+(function () {
+  "use strict";
 
-  init()
+  init();
 
   function init() {
-    const btn = _createExportButton()
-    btn.addEventListener('click', () => {
-      const mdDownloadUrl = _getMarkdownFileUrl()
-      _parseMarkdownToHtml(mdDownloadUrl)
-    })
-    _toggleBtn(btn)
+    const btn = _createExportButton();
+    btn.addEventListener("click", () => {
+      const mdDownloadUrl = _getMarkdownFileUrl();
+      _parseMarkdownToHtml(mdDownloadUrl);
+    });
+    _toggleBtn(btn);
     _onRouterChange(() => {
-      _toggleBtn(btn)
-    })
+      _toggleBtn(btn);
+    });
   }
 
   function _onRouterChange(handler) {
-    history.pushState = _bindEventListener('pushState')
-    history.replaceState = _bindEventListener('replaceState')
-    window.addEventListener('replaceState', handler)
-    window.addEventListener('pushState', handler)
+    history.pushState = _bindEventListener("pushState");
+    history.replaceState = _bindEventListener("replaceState");
+    window.addEventListener("replaceState", handler);
+    window.addEventListener("pushState", handler);
   }
 
   function _parseMarkdownToHtml(url) {
@@ -40,124 +40,124 @@
       .fetch(url)
       .then((res) => res.text())
       .then((html) => {
-        const parser = new DOMParser()
+        const parser = new DOMParser();
         const doc = parser.parseFromString(
-          window.marked.parse(_fixMarkdownStrong(html)),
-          'text/html'
-        )
+          window.marked.parse(_parseMarkdownStrong(html)),
+          "text/html"
+        );
         _copyToClipboard(_addTableWrapDiv(doc)).then(() => {
-          let yuqueLinksCount = _isHasYuqueLink(doc)
-          let tableCount = _isHasTableElement(doc)
+          let yuqueLinksCount = _isHasYuqueLink(doc);
+          let tableCount = _isHasTableElement(doc);
           if (yuqueLinksCount || tableCount) {
             _showToast({
-              title: '已导出至剪切板',
+              title: "已导出至剪切板",
               message: `检测到${
-                yuqueLinksCount ? yuqueLinksCount + '个语雀内链，' : ''
-              } ${tableCount ? tableCount + '个表格，' : ''}请手动处理。`,
-            })
+                yuqueLinksCount ? yuqueLinksCount + "个语雀内链，" : ""
+              } ${tableCount ? tableCount + "个表格，" : ""}请手动处理。`,
+            });
           } else {
             _showToast({
-              title: '已导出至剪切板',
-            })
+              title: "已导出至剪切板",
+            });
           }
-        })
-      })
+        });
+      });
   }
 
   function _getMarkdownFileUrl() {
     return (
       window.location.href +
-      '/markdown?attachment=true&latexcode=false&anchor=true&linebreak=true'
-    )
+      "/markdown?attachment=true&latexcode=false&anchor=true&linebreak=true"
+    );
   }
 
   function _createExportButton() {
-    let btn = document.createElement('button')
-    btn.innerText = '导出html'
+    let btn = document.createElement("button");
+    btn.innerText = "导出html";
     btn.style =
-      'position:fixed;top:5px;left:50%;transform:translate(-50%,0);z-index:10000;background:#00b96b;padding:10px 14px;border:none;color:#fff;cursor:pointer;'
-    document.body.appendChild(btn)
-    return btn
+      "position:fixed;top:5px;left:50%;transform:translate(-50%,0);z-index:10000;background:#00b96b;padding:10px 14px;border:none;color:#fff;cursor:pointer;";
+    document.body.appendChild(btn);
+    return btn;
   }
 
-  function _fixMarkdownStrong(md) {
-    return md.replace(/\*\*\W*\*\*/g, (match) => {
-      return match + ' '
-    })
+  function _parseMarkdownStrong(md) {
+    return md.replace(/\*\*.*\*\*/g, (match) => {
+      return match + " ";
+    });
   }
 
   function _isHasYuqueLink(doc) {
-    let aList = doc.querySelectorAll('a')
+    let aList = doc.querySelectorAll("a");
     let yuqueLinks = aList
-      ? Array.from(aList).filter((v) => v.href.includes('yuque.com'))
-      : []
-    return yuqueLinks.length
+      ? Array.from(aList).filter((v) => v.href.includes("yuque.com"))
+      : [];
+    return yuqueLinks.length;
   }
 
   function _isHasTableElement(doc) {
-    let tableList = doc.querySelectorAll('table')
-    return tableList?.length || 0
+    let tableList = doc.querySelectorAll("table");
+    return tableList?.length || 0;
   }
 
   function _addTableWrapDiv(doc) {
-    doc.querySelectorAll('table').forEach((child) => {
-      const parent = document.createElement('div')
-      parent.style.overflowX = 'auto'
-      child.parentNode.replaceChild(parent, child)
-      parent.appendChild(child)
-    })
-    return doc.body.innerHTML
+    doc.querySelectorAll("table").forEach((child) => {
+      const parent = document.createElement("div");
+      parent.style.overflowX = "auto";
+      child.parentNode.replaceChild(parent, child);
+      parent.appendChild(child);
+    });
+    return doc.body.innerHTML;
   }
 
   function _toggleBtn(btn) {
     if (btn) {
-      btn.style.display = 'none'
+      btn.style.display = "none";
     }
     setTimeout(() => {
-      let isAtDetailPage = document.querySelector('.ne-doc-major-viewer')
+      let isAtDetailPage = document.querySelector(".ne-doc-major-viewer");
       if (!isAtDetailPage) {
         if (btn) {
-          btn.style.display = 'none'
+          btn.style.display = "none";
         }
       } else {
         if (btn) {
-          btn.style.display = 'block'
+          btn.style.display = "block";
         }
       }
-    }, 2000)
+    }, 2000);
   }
 
   function _bindEventListener(type) {
-    const historyEvent = history[type]
+    const historyEvent = history[type];
     return function () {
-      const newEvent = historyEvent.apply(this, arguments)
-      const e = new Event(type)
-      e.arguments = arguments
-      window.dispatchEvent(e)
-      return newEvent
-    }
+      const newEvent = historyEvent.apply(this, arguments);
+      const e = new Event(type);
+      e.arguments = arguments;
+      window.dispatchEvent(e);
+      return newEvent;
+    };
   }
 
   function _showToast(opts) {
-    let { title, message } = opts
+    let { title, message } = opts;
     let template = `
     <div>${title}</div>
-  `
+  `;
     let templateMsg = `
       <div>${title}</div>
       <div style="color:red;">${message}</div>
-    `
-    let toast = document.createElement('div')
-    toast.innerHTML = message ? templateMsg : template
+    `;
+    let toast = document.createElement("div");
+    toast.innerHTML = message ? templateMsg : template;
     toast.style =
-      'position:fixed;top:16%;left:50%;transform:translate(-50%,-24%);z-index:20000;background:#67C23A;padding:30px 45px;border-radius:4px;color:#fff;text-align:center;'
-    document.body.appendChild(toast)
+      "position:fixed;top:16%;left:50%;transform:translate(-50%,-24%);z-index:20000;background:#67C23A;padding:30px 45px;border-radius:4px;color:#fff;text-align:center;";
+    document.body.appendChild(toast);
     setTimeout(() => {
-      document.body.removeChild(toast)
-    }, 2000)
+      document.body.removeChild(toast);
+    }, 2000);
   }
 
   function _copyToClipboard(text) {
-    return navigator.clipboard.writeText(text)
+    return navigator.clipboard.writeText(text);
   }
-})()
+})();
