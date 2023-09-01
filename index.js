@@ -47,6 +47,7 @@
     });
     _toggleElementVisible([btn, previewPanel]);
     _onRouterChange(() => {
+      previewPanel.style.border = "none";
       previewPanel.innerHTML = "";
       _toggleElementVisible([btn, previewPanel]);
     });
