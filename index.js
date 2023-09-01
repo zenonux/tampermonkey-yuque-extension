@@ -48,12 +48,14 @@
         _copyToClipboard(_addTableWrapDiv(doc)).then(() => {
           let yuqueLinksCount = _isHasYuqueLink(doc);
           let tableCount = _isHasTableElement(doc);
-          if (yuqueLinksCount || tableCount) {
+          let _isHasAsterisk = _isHasAsterisk(doc);
+          if (yuqueLinksCount || tableCount || _isHasAsterisk) {
             _showToast({
               title: "已导出至剪切板",
-              message: `检测到${
-                yuqueLinksCount ? yuqueLinksCount + "个语雀内链，" : ""
-              } ${tableCount ? tableCount + "个表格，" : ""}请手动处理。`,
+              message: `检测到
+              ${ _isHasAsterisk ? "加粗异常，" : ""}
+              ${ yuqueLinksCount ? yuqueLinksCount + "个语雀内链，" : ""}
+              ${tableCount ? tableCount + "个表格，" : ""}请手动处理。`,
             });
           } else {
             _showToast({
@@ -81,9 +83,13 @@
   }
 
   function _parseMarkdownStrong(md) {
-    return md.replace(/\*\*.*\*\*/g, (match) => {
+    return md.replace(/\*\*[^\*]*\*\*/g, (match) => {
       return match + " ";
     });
+  }
+
+  function _isHasAsterisk(doc) {
+    return /\*\*/g.test(doc.innerHTML);
   }
 
   function _isHasYuqueLink(doc) {
