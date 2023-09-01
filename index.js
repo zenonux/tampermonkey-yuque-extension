@@ -104,9 +104,14 @@
   }
 
   function _parseMarkdownStrong(md) {
-    return md.replace(/\*\*[^\*]*\*\*/g, (match) => {
-      return match + " ";
-    });
+    // 去除语雀md为"默认加粗如 **"** -> "
+    // 为加粗左界符尾部去除空格，右界符去除头部空格，添加尾部空格，避免加粗不生效
+    return md
+      .replace(/\*\*\s?"\s?\*\*/g, '"')
+      .replace(/\*\*[^\*]*\*\*/g, (match) => {
+        let text = match.replace(/\*\*/g, "");
+        return "**" + text.trim() + "** ";
+      });
   }
 
   function _isHasAsterisk(doc) {
