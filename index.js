@@ -17,14 +17,38 @@
   init();
 
   function init() {
+    const previewPanel = _createPreviewPanel();
     const btn = _createExportButton();
     btn.addEventListener("click", () => {
       const mdDownloadUrl = _getMarkdownFileUrl();
-      _parseMarkdownToHtml(mdDownloadUrl);
+      _parseMarkdownToHtml(mdDownloadUrl).then((docHtml) => {
+        _preview(previewPanel, docHtml);
+        _copyToClipboard(docHtml).then(() => {
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(docHtml, "text/html");
+          let yuqueLinksCount = _isHasYuqueLink(doc);
+          let tableCount = _isHasTableElement(doc);
+          let isHasAsterisk = _isHasAsterisk(doc);
+          if (yuqueLinksCount || tableCount || isHasAsterisk) {
+            _showToast({
+              title: "已导出至剪切板",
+              message: `检测到
+              ${isHasAsterisk ? "加粗异常，" : ""}
+              ${yuqueLinksCount ? yuqueLinksCount + "个语雀内链，" : ""}
+              ${tableCount ? tableCount + "个表格，" : ""}请手动处理。`,
+            });
+          } else {
+            _showToast({
+              title: "已导出至剪切板",
+            });
+          }
+        });
+      });
     });
-    _toggleBtn(btn);
+    _toggleElementVisible([btn, previewPanel]);
     _onRouterChange(() => {
-      _toggleBtn(btn);
+      previewPanel.innerHTML = "";
+      _toggleElementVisible([btn, previewPanel]);
     });
   }
 
@@ -35,8 +59,13 @@
     window.addEventListener("pushState", handler);
   }
 
+  function _preview(panel, str) {
+    panel.style.border = "solid 1px #00b96b";
+    panel.innerHTML = str;
+  }
+
   function _parseMarkdownToHtml(url) {
-    window
+    return window
       .fetch(url)
       .then((res) => res.text())
       .then((html) => {
@@ -45,25 +74,17 @@
           window.marked.parse(_parseMarkdownStrong(html)),
           "text/html"
         );
-        _copyToClipboard(_addTableWrapDiv(doc)).then(() => {
-          let yuqueLinksCount = _isHasYuqueLink(doc);
-          let tableCount = _isHasTableElement(doc);
-          let isHasAsterisk = _isHasAsterisk(doc);
-          if (yuqueLinksCount || tableCount || isHasAsterisk) {
-            _showToast({
-              title: "已导出至剪切板",
-              message: `检测到
-              ${ isHasAsterisk ? "加粗异常，" : ""}
-              ${ yuqueLinksCount ? yuqueLinksCount + "个语雀内链，" : ""}
-              ${tableCount ? tableCount + "个表格，" : ""}请手动处理。`,
-            });
-          } else {
-            _showToast({
-              title: "已导出至剪切板",
-            });
-          }
-        });
+        const docHtml = _addTableWrapDiv(doc);
+        return docHtml;
       });
+  }
+
+  function _createPreviewPanel() {
+    let rightPanel = document.createElement("div");
+    rightPanel.style =
+      "position:fixed;top:62px;bottom:10px;right:100px;z-index:100;width:600px;overflow-y:scroll;padding:10px;";
+    document.body.append(rightPanel);
+    return rightPanel;
   }
 
   function _getMarkdownFileUrl() {
@@ -89,7 +110,7 @@
   }
 
   function _isHasAsterisk(doc) {
-    return /\*\*/g.test(doc.innerHTML);
+    return /\*\*/g.test(doc.body.innerHTML);
   }
 
   function _isHasYuqueLink(doc) {
@@ -115,22 +136,24 @@
     return doc.body.innerHTML;
   }
 
-  function _toggleBtn(btn) {
-    if (btn) {
-      btn.style.display = "none";
-    }
-    setTimeout(() => {
-      let isAtDetailPage = document.querySelector(".ne-doc-major-viewer");
-      if (!isAtDetailPage) {
-        if (btn) {
-          btn.style.display = "none";
-        }
-      } else {
-        if (btn) {
-          btn.style.display = "block";
-        }
+  function _toggleElementVisible(elArr) {
+    elArr.forEach((el) => {
+      if (el) {
+        el.style.display = "none";
       }
-    }, 2000);
+      setTimeout(() => {
+        let isAtDetailPage = document.querySelector(".ne-doc-major-viewer");
+        if (!isAtDetailPage) {
+          if (el) {
+            el.style.display = "none";
+          }
+        } else {
+          if (el) {
+            el.style.display = "block";
+          }
+        }
+      }, 2000);
+    });
   }
 
   function _bindEventListener(type) {
